@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dominoes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Domine:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="fonts_stylesheet.css" />
+    <style>
+        body {
+            margin: 25px;
+            background-color: midnightblue;
+            color: turquoise;
+        }
+        .title {
+            font-size: 48px;
+            font-family: Domine;
+            text-align: center;
+            color: springgreen;
+        }
+        .play {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .play button {
+            cursor: pointer;
+        }
+        .feltTableCover {
+            text-align: center;
+            background-color: seagreen;
+            padding: 25px;
+            min-height: 120px;
+        }
+        .feltTableCover .layout {
+            text-align: center;
+        }
+        .feltTableCover .layout .domino {
+            color: palegoldenrod;
+            box-sizing:border-box;
+            display: inline-block;
+            font-family: GamePi;
+            width: 50px;
+            height: 100px;
+            margin: 10px 0 10px;
+            background-color: black;
+            border-radius: 7px 12px;
+            outline: 1px solid black;
+            animation: highlight 1500ms forwards;
+            box-shadow: 0 0 10px 5px yellow;
+        }
+        @keyframes highlight {
+            10% {
+                box-shadow: 0 0 10px 5px yellow;
+            }
+            100% {
+                box-shadow: 0 0 10px 5px transparent;
+            }
+        }
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+        @keyframes blinker {
+            0% {
+                opacity: 1;
+            }
+            49% {
+                opacity: 1;
+            }
+            51% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+        .feltTableCover .layout .domino.hor {
+            width: 100px;
+            height: 50px;
+            margin: 35px 0 35px;
+            text-align: left;
+            vertical-align: 25px;
+        }
+        .feltTableCover .layout .domino .inner {
+            display: inline-block;
+            font-size: 50px;
+            height: 100px;
+            width: 50px;
+            line-height: 50px;
+            margin-top: 14px;
+        }
+        .feltTableCover .layout .domino.hor .inner {
+            height: 50px;
+            width: 100px;
+        }
+        .players {
+            display: flex;
+            margin-bottom: 20px;
+            min-height: 90px;
+        }
+        .players .player.play {
+            color: yellow;
+        }
+        .players .player, .players .boneyard {
+            font-size: 20px;
+            font-family: Domine;
+            flex: 1;
+            margin: 10px;
+        }
+        .players .player .tiles, .players .boneyard .tiles {
+            word-break: break-all;
+            text-align: center;
+        }
+        .players .player .count, .players .boneyard .count {
+            white-space: nowrap;
+            text-align: center;
+        }
+        .players .player .name, .players .boneyard .name {
+            white-space: nowrap;
+            text-align: center;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script>
+        const VER_TOP = ['G', 'A', 'B', 'C', 'D', 'E', 'F'];
+        const VER_BOT = ['N', 'H', 'I', 'J', 'K', 'L', 'M'];
+        const HOR_LEF = ['g', 'a', 'b', 'c', 'd', 'e', 'f'];
+        const HOR_RIG = ['n', 'h', 'i', 'j', 'k', 'l', 'm'];
+        const SLEEP_PERIOD = 500; // ms
+        let tiles = [];
+        let player = [[], []];
+        let head = undefined;
+        let tail = undefined;
+        let currentPlayer = 0;
+        let maxPlayer = [];
+        let shuffleArray = array => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        let appendDomino = (i, j) => {
+            $('.layout').append(makeDomino(i, j));
+        }
+        let prependDomino = (i, j) => {
+            $('.layout').prepend(makeDomino(i, j));
+        }
+        let makeDomino = (i, j) => {
+            $domino = $('<span class="domino" />');
+            if (i !== j) $domino.addClass('hor');
+            $inner = $('<span class="inner" />');
+            $domino.append($inner);
+            if (i !== j) $inner.append(HOR_LEF[i] + HOR_RIG[j]);
+            else $inner.append(VER_TOP[i] + '<br />' + VER_BOT[j]);
+            return $domino;
+        }
+        let playerBegin = (playerIndex, double) => {
+            let index = 0;
+            for (const tile of player[playerIndex]) {
+                if (tile[0] == double && tile[1] == tile[0]) {
+                    player[playerIndex].splice(index, 1);
+                    appendDomino(double, double);
+                    head = double;
+                    tail = double;
+                    break;
+                }
+                index++;
+            }
+        }
+        let playerDraw = async playerIndex => {
+            let tile = tiles.pop();
+            player[playerIndex].push(tile);
+            updateDisplay(playerIndex);
+            await sleep(SLEEP_PERIOD);
+        }
+        let playerPlay = async playerIndex => {
+            const i = 0, j = 1;
+            let found = false;
+            while (!found) {
+                let index = 0;
+                let possibilities = [];
+                for (const tile of player[playerIndex]) {
+                    if (tile[i] === head) {
+                        possibilities.push({
+                            A: tile[j],
+                            B: tile[i],
+                            index: index,
+                            head: tile[j]
+                        });
+                    }
+                    if (tile[i] === tail) {
+                        possibilities.push({
+                            A: tile[i],
+                            B: tile[j],
+                            index: index,
+                            tail: tile[j]
+                        });
+                    }
+                    if (tile[j] === head) {
+                        possibilities.push({
+                            A: tile[i],
+                            B: tile[j],
+                            index: index,
+                            head: tile[i]
+                        });
+                    }
+                    if (tile[j] === tail) {
+                        possibilities.push({
+                            A: tile[j],
+                            B: tile[i],
+                            index: index,
+                            tail: tile[i]
+                        });
+                    }
+                    index++;
+                }
+                if (possibilities.length >= 1) {
+                    let params = possibilities[Math.floor(Math.random() * possibilities.length)];
+                    player[playerIndex].splice(params.index, 1);
+                    if (params.tail !== undefined) {
+                        tail = params.tail;
+                        appendDomino(params.A, params.B);
+                    } else if (params.head !== undefined) {
+                        head = params.head;
+                        prependDomino(params.A, params.B);
+                    }
+                    found = true;
+                    updateDisplay(playerIndex);
+                    await sleep(SLEEP_PERIOD);
+                }
+                if (!found) {
+                    if (tiles.length === 0) return false;
+                    await playerDraw(playerIndex);
+                    updateDisplay(playerIndex);
+                    await sleep(SLEEP_PERIOD);
+                }
+            }
+            return true;
+        }
+        let init = () => {
+            tiles = [];
+            player = [[], []];
+            head = undefined;
+            tail = undefined;
+            currentPlayer = 0;
+            maxPlayer = [];
+            for (let i = 0; i <= 6; i++) for (let j = 0; j <= 6; j++) if (j >= i) tiles.push([i, j]);
+            tiles = shuffleArray(tiles);
+        }
+        let distribute = () => {
+            for (let i = 0; i < 5; i++) {
+                player[0].push(tiles.pop());
+                player[1].push(tiles.pop());
+            }
+        }
+        let findStarter = () => {
+            for (let i = 0; i < 2; i++) {
+                maxPlayer[i] = 0;
+                for (const tile of player[i]) {
+                    if (tile[0] === tile[1]) maxPlayer[i] = Math.max(maxPlayer[i], tile[0]);
+                }
+            }
+            if (maxPlayer[0] > maxPlayer[1]) return 0;
+            else if (maxPlayer[0] < maxPlayer[1]) return 1;
+            return false;
+        }
+        let sleep = ms => {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        let updateAllDisplay = () => {
+            for (let i = 0; i < 2; i++) updateDisplay(i);
+        }
+        let updateDisplay = playerIndex => {
+            updatePlayerDisplay(playerIndex);
+            updateBoneyard();
+        }
+        let updatePlayerDisplay = playerIndex => {
+            let n = playerIndex + 1;
+            $('.players #player' + n + ' .count').text(player[playerIndex].length);
+            $('.players #player' + n + ' .tiles').text('▮'.repeat(player[playerIndex].length));
+        }
+        let updateBoneyard = () => {
+            $('.players .boneyard .count').text(tiles.length);
+            $('.players .boneyard .tiles').text('▮'.repeat(tiles.length));
+        }
+        let setDisplayPlayer = playerIndex => {
+            let n = playerIndex + 1;
+            $('.players .player.play').removeClass('play');
+            $('.players #player' + n).addClass('play');
+        }
+        let run = async () => {
+            let starter = undefined;
+            do {
+                // Redistribute while a starter is not found
+                init();
+                updateAllDisplay();
+                await sleep(SLEEP_PERIOD);
+                distribute();
+                updateAllDisplay();
+                await sleep(SLEEP_PERIOD);
+            } while ((starter = findStarter()) === false);
+            setDisplayPlayer(starter);
+            await sleep(SLEEP_PERIOD);
+            playerBegin(starter, maxPlayer[starter]);
+            currentPlayer = starter;
+            updatePlayerDisplay(starter);
+            await sleep(SLEEP_PERIOD);
+
+            while (player[0].length && player[1].length) {
+                setDisplayPlayer(currentPlayer);
+                await sleep(SLEEP_PERIOD);
+                if (! await playerPlay(currentPlayer)) break;
+                updateAllDisplay();
+                await sleep(SLEEP_PERIOD);
+                currentPlayer++;
+                if (currentPlayer === 2) currentPlayer = 0;
+            }
+            updateAllDisplay();
+            if (player[0].length > player[1].length) {
+                $('#player2 .count').text('WON!').addClass('blink');
+                setDisplayPlayer(1);
+                setTimeout(() => {
+                    $('#player2 .count').removeClass('blink');
+                }, 5000);
+            } else if (player[0].length < player[1].length) {
+                $('#player1 .count').text('WON!').addClass('blink');
+                setDisplayPlayer(0);
+                setTimeout(() => {
+                    $('#player1 .count').removeClass('blink');
+                }, 5000);
+            } else {
+                $('.players .player.play').removeClass('play');
+            }
+            let $button = $('button');
+            $button.prop('disabled', false);
+            $button.text('Play');
+            setTimeout(() => {
+                $button.trigger('click');
+            }, 10000)
+        }
+        $(() => {
+            let $button = $('button');
+            $button.on('click', async () => {
+                $('.feltTableCover .layout').empty();
+                $('.feltTableCover .layout').empty();
+                $button.prop('disabled', true);
+                $button.text('Playing');
+                await run();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="title">Dominoes</div>
+    <div class="play"><button type="button">Play</button></div>
+    <div class="players">
+        <div id="player1" class="player"><div class="name">Computer 1</div><div class="count"></div><div class="tiles"></div></div>
+        <div class="boneyard"><div class="name">Boneyard</div><div class="count"></div><div class="tiles"></div></div>
+        <div id="player2" class="player"><div class="name">Computer 2</div><div class="count"></div><div class="tiles"></div></div>
+    </div>
+    <div class="feltTableCover"><div class="layout"></div></div>
+</body>
+</html>

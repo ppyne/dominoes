@@ -1,0 +1,15 @@
+@charset "UTF-8";
+
+/* Linotype Game Pi Dice Dominoes */
+@font-face {
+    font-family: "GamePi";
+    src: url("fonts/dominoes.eot"); /* IE 9 Compatibility Mode */
+    src: url("fonts/dominoes.eot?#iefix") format("embedded-opentype"), /* IE < 9 */
+         /*url("fonts/dominoes.woff2") format("woff2"),*/ /* Chrome 36, Opera 23, Firefox 35 */
+         url("fonts/dominoes.woff") format("woff"), /* Firefox >= 3.6, any other modern browser */
+         url("fonts/dominoes.ttf") format("truetype"), /* Safari, Android, iOS */
+         url("fonts/dominoes.svg#dominoes") format("svg"); /* Chrome < 4, Legacy iOS */
+    font-weight: normal;
+    font-style: normal;
+}
+
