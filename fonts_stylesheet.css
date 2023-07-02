@@ -1,14 +1,27 @@
 @charset "UTF-8";
 
-/* Linotype Game Pi Dice Dominoes */
+/* DejaVu Sans Condensed */
+@font-face {
+    font-family: "DejaVuSans";
+    src: url("fonts/dejavu.eot"); /* IE 9 Compatibility Mode */
+    src: url("fonts/dejavu.eot?#iefix") format("embedded-opentype"), /* IE < 9 */
+         url("fonts/dejavu.woff2") format("woff2"), /* Chrome 36, Opera 23, Firefox 35 */
+         url("fonts/dejavu.woff") format("woff"), /* Firefox >= 3.6, any other modern browser */
+         url("fonts/dejavu.ttf") format("truetype"), /* Safari, Android, iOS */
+         url("fonts/dejavu.svg#dejavu") format("svg"); /* Chrome < 4, Legacy iOS */
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Game Pi Dice Dominoes */
 @font-face {
     font-family: "GamePi";
-    src: url("fonts/dominoes.eot"); /* IE 9 Compatibility Mode */
-    src: url("fonts/dominoes.eot?#iefix") format("embedded-opentype"), /* IE < 9 */
-         /*url("fonts/dominoes.woff2") format("woff2"),*/ /* Chrome 36, Opera 23, Firefox 35 */
-         url("fonts/dominoes.woff") format("woff"), /* Firefox >= 3.6, any other modern browser */
-         url("fonts/dominoes.ttf") format("truetype"), /* Safari, Android, iOS */
-         url("fonts/dominoes.svg#dominoes") format("svg"); /* Chrome < 4, Legacy iOS */
+    src: url("fonts/gamepi.eot"); /* IE 9 Compatibility Mode */
+    src: url("fonts/gamepi.eot?#iefix") format("embedded-opentype"), /* IE < 9 */
+         url("fonts/gamepi.woff2") format("woff2"), /* Chrome 36, Opera 23, Firefox 35 */
+         url("fonts/gamepi.woff") format("woff"), /* Firefox >= 3.6, any other modern browser */
+         url("fonts/gamepi.ttf") format("truetype"), /* Safari, Android, iOS */
+         url("fonts/gamepi.svg#gamepi") format("svg"); /* Chrome < 4, Legacy iOS */
     font-weight: normal;
     font-style: normal;
 }
