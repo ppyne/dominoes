@@ -124,6 +124,26 @@
             white-space: nowrap;
             text-align: center;
         }
+        #overall {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+            height: 50px;
+            font-size: 12px;
+            font-family: DejaVuSans;
+            padding: 5px 5px 0 0;
+            color: royalblue;
+        }
+        #overall .label {
+            display: inline-block;
+            width: 75px;
+        }
+        #overall .value {
+            display: inline-block;
+            width: 45px;
+            text-align: right;
+        }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     <script>
@@ -140,6 +160,8 @@
         let tail = undefined;
         let currentPlayer = 0;
         let maxPlayer = [];
+        let rounds = 0;
+        let score = [0, 0];
         let shuffleArray = array => {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -303,6 +325,19 @@
             $('.players .player.play').removeClass('play');
             $('.players #player' + n).addClass('play');
         }
+        let appendRoundLine = (label, value) => {
+            let $label = $('<span class="label" />');
+            $label.text(label);
+            let $value = $('<span class="value" />');
+            $value.text(value);
+            $('#overall').append($label).append($value);
+        }
+        let updateRounds = () => {
+            $('#overall').empty();
+            appendRoundLine('Computer 1:', score[0]);
+            appendRoundLine('Computer 2:', score[1]);
+            appendRoundLine('Rounds:', rounds);
+        }
         let run = async () => {
             let starter = undefined;
             do {
@@ -331,13 +366,16 @@
                 if (currentPlayer === 2) currentPlayer = 0;
             }
             updateAllDisplay();
+            rounds++;
             if (player[0].length > player[1].length) {
+                score[1]++;
                 $('#player2 .count').text('WON!').addClass('blink');
                 setDisplayPlayer(1);
                 setTimeout(() => {
                     $('#player2 .count').removeClass('blink');
                 }, 5000);
             } else if (player[0].length < player[1].length) {
+                score[0]++;
                 $('#player1 .count').text('WON!').addClass('blink');
                 setDisplayPlayer(0);
                 setTimeout(() => {
@@ -346,6 +384,7 @@
             } else {
                 $('.players .player.play').removeClass('play');
             }
+            updateRounds();
             let $button = $('button');
             $button.prop('disabled', false);
             $button.text('Play');
@@ -373,5 +412,6 @@
         <div id="player2" class="player"><div class="name">Computer 2</div><div class="count"></div><div class="tiles"></div></div>
     </div>
     <div class="feltTableCover"><div class="layout"></div></div>
+    <div id="overall"></div>
 </body>
 </html>
